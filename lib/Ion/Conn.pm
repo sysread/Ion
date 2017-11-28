@@ -28,6 +28,7 @@ sub BUILD {
     my $port  = $self->port || croak 'port is required when handle is not specified';
     my $guard = tcp_connect($host, $port, rouse_cb);
     my ($fh, @param) = rouse_wait;
+    croak "connection failed: $!" unless $fh;
     $self->handle(unblock $fh);
     $self->guard($guard);
   }
