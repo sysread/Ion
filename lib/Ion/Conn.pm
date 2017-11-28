@@ -53,12 +53,13 @@ sub readline {
 sub close {
   my $self = shift;
   return unless $self->guard;
-
   $self->clear_guard;
 
-  $self->handle->shutdown;
-  $self->handle->close;
-  $self->clear_handle;
+  if ($self->handle) {
+    $self->handle->shutdown;
+    $self->handle->close;
+    $self->clear_handle;
+  }
 }
 
 sub _coderef {

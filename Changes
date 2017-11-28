@@ -1,4 +1,5 @@
 {{$NEXT}}
+-Fix for warnings during global shutdown
 
 0.01 2017-11-28
 -Initial release
