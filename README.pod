@@ -59,7 +59,7 @@ loop, it is recommended that the client response loop be called using
 L<async|Coro>. That allows other incoming connections to be accepted without
 waiting for the original client to disconnect.
 
-  my $server = Listen;
+  my $server = Listen 1234, 'localhost';
 
   while (my $conn = <$server>) {    # cedes until $conn is ready
     async {
@@ -69,9 +69,9 @@ waiting for the original client to disconnect.
     };
   }
 
-The port number and host interface may be optionally specified. If left
-undefined, these will be assigned by the operating system and are accessible
-via the C<port> and C<host> methods of the server.
+The port number and host interface are optional. If left undefined, these will
+be assigned by the operating system and are accessible via the C<port> and
+C<host> methods of the server.
 
   my $server = Listen;
   my $port   = $server->port;

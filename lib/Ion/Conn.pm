@@ -1,4 +1,5 @@
 package Ion::Conn;
+# ABSTRACT: An Ion TCP socket connection
 
 use common::sense;
 
@@ -66,3 +67,33 @@ sub _coderef {
 }
 
 1;
+
+=head1 METHODS
+
+=head2 print
+
+Writes data to the socket. The line is automatically appended with the value of
+C<$/>.
+
+=head2 readline
+
+Returns the next line of data received on the socket. This method will cede
+control of the thread until a complete line is available. The value will have
+already been chomped to remove the line terminator (C<$/>).
+
+=head2 close
+
+Closes the socket. After calling this method, the connection object may not be
+reopened.
+
+=head1 OVERLOADED OPERATORS
+
+=head2 <>
+
+Calls L</readline>.
+
+=head2 ${} (e.g. C<$conn->()>)
+
+Calls L</print>.
+
+=cut

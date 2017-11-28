@@ -1,4 +1,5 @@
 package Ion::Server;
+# ABSTRACT: An Ion TCP service
 
 use common::sense;
 
@@ -12,7 +13,6 @@ use Ion::Conn;
 
 use overload (
   '<>'     => 'accept',
-  '&{}'    => '_coderef',
   fallback => 1,
 );
 
@@ -80,9 +80,37 @@ sub stop {
   return 1;
 }
 
-sub _coderef {
-  my $self = shift;
-  sub { $self->accept };
-}
-
 1;
+
+=head1 METHODS
+
+=head2 start
+
+Starts the listening socket. Optionally accepts a port number and host
+interface on which to listen. If left unspecified, these will be assigned by
+the operating system.
+
+=head2 stop
+
+Stops the listener and shuts down the incoming connection queue.
+
+=head2 port
+
+Returns the listening port of a L<started|/start> service.
+
+=head2 host
+
+Returns the host interface of a L<started|/start> service.
+
+=head2 accept
+
+Returns the next incoming connection. This method will block until a new
+connection is received.
+
+=head1 OVERLOADED OPERATORS
+
+=head2 <>
+
+Calls L</accept>.
+
+=cut
