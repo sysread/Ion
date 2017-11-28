@@ -41,6 +41,11 @@ version 0.01
 
 =head1 DESCRIPTION
 
+Ion is intended as an easy to use, concise interface for building TCP
+networking applications in Perl using L<Coro>. Although it is not strictly
+necessary, it is recommended that one have at least a passing familiarity with
+L<Coro> when building services with this module.
+
 =head1 EXPORTED SUBROUTINES
 
 =head2 Listen
