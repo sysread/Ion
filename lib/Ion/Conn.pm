@@ -92,7 +92,7 @@ reopened.
 
 Calls L</readline>.
 
-=head2 ${} (e.g. C<$conn->()>)
+=head2 ${} (e.g. C<$conn->($data)>)
 
 Calls L</print>.
 
