@@ -3,9 +3,7 @@ use Coro;
 use Coro::AnyEvent;
 use Ion;
 
-sub upper { uc $_[0] }
-
-ok my $server = Service { upper($_[0]) }, 'Server';
+ok my $server = Service { uc $_[0] }, 'Server';
 ok my $conn   = Connect($server->host, $server->port), 'Connect';
 
 my $timeout = async {
