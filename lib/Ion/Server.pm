@@ -22,6 +22,7 @@ has guard  => (is => 'rw', clearer => 1);
 has handle => (is => 'rw', clearer => 1);
 has queue  => (is => 'rw', clearer => 1, default => sub{ Coro::Channel->new });
 has conn   => (is => 'rw', default => sub{ {} });
+has cond   => (is => 'rw');
 
 sub DEMOLISH {
   my $self = shift;
@@ -56,6 +57,7 @@ sub start {
   $self->port(shift @sock);
   $self->guard($guard);
   $self->queue($queue);
+  $self->cond(rouse_cb);
 
   return 1;
 }
@@ -73,7 +75,14 @@ sub stop {
   $self->handle->close;
   $self->clear_handle;
 
+  $self->cond->();
+
   return 1;
+}
+
+sub join {
+  my $self = shift;
+  rouse_wait($self->cond);
 }
 
 1;
@@ -89,6 +98,10 @@ the operating system.
 =head2 stop
 
 Stops the listener and shuts down the incoming connection queue.
+
+=head2 join
+
+Cedes control until L</stop> is called.
 
 =head2 port
 
