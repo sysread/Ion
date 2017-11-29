@@ -1,5 +1,6 @@
 {{$NEXT}}
 -new method Ion::Server->join
+-new function, Service, replaces service handler in Listen
 
 0.03 2017-11-29
 -bugfix: Listen fails to process port, host parameters correctly when no

@@ -83,6 +83,7 @@ sub stop {
 sub join {
   my $self = shift;
   rouse_wait($self->cond);
+  return 1;
 }
 
 1;

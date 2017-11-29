@@ -6,7 +6,7 @@ use Ion;
 my @queue;
 my $re_cmd = qr/^(size|get|put)\s*(.*)$/;
 
-my $server = Listen 4242, sub {
+my $server = Service {
   my $line  = shift;
   my ($cmd, $data) = $line =~ $re_cmd;
 
@@ -20,7 +20,7 @@ my $server = Listen 4242, sub {
   elsif ($cmd eq 'size') {
     return scalar @queue . ' items';
   }
-};
+} 4242, '127.0.0.1';
 
 printf "Queue started on %s:%d\n", $server->host, $server->port;
 

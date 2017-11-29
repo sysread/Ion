@@ -18,20 +18,14 @@ version 0.04
   my $echo = Listen 7777;
 
   while (my $conn = <$echo>) {
-    while (my $line = <$conn>) {
-      $conn->($line);
-    }
+      while (my $line = <$conn>) {
+          $conn->("you said: $line");
+      }
   }
 
 
-  # Or separate the protocol from the listener
-  sub echo {
-    my $line = shift;
-    return $line;
-  }
-
-  # ...and let Ion handle the rest
-  my $server = Listen 7777, \&echo;
+  # Or separate the protocol from the listener and let Ion handle the rest
+  Service { return "you said: $_[0]" } $echo;
 
 
   # Client connections
@@ -66,12 +60,12 @@ waiting for the original client to disconnect.
 
   my $server = Listen 1234, 'localhost';
 
-  while (my $conn = <$server>) {    # cedes until $conn is ready
-    async {
-      while (my $line = <$conn>) {  # cedes until $line is ready
-        $conn->(do_something_with($line));
-      }
-    };
+  while (my $conn = <$server>) {        # cedes until $conn is ready
+      async {
+          while (my $line = <$conn>) {  # cedes until $line is ready
+              $conn->(do_something_with($line));
+          }
+      };
   }
 
 The port number and host interface are optional. If left undefined, these will
@@ -82,25 +76,32 @@ C<host> methods of the server.
   my $port   = $server->port;
   my $host   = $server->host;
 
-If desirable, a request handler function may also be provided as the final
-argument to C<Listen>. This will be called for each incoming line of data and
+=head2 Service
+
+Begins serving requests on the specified listening service by calling the
+supplied code block for each line received from a client connection. The
+service may be specified as the server object itself (the return value of
+L</Listen>) or by passing the port and host name, which are passed unchanged to
+L</Listen>.
+
+The handler block will be called for each incoming line of data and
 additionally is passed the L<client connection|Ion::Conn> and the
 L<server|Ion::Server> objects.
 
-  Listen 7777, sub {
-    my ($line, $conn, $server) = @_;
-    return do_something_with_line($line);
-  };
+  Service {
+      my ($line, $conn, $server) = @_;
+      return do_something_with_line($line);
+  } 7777, '127.0.0.1';
 
 The return value of the handler function is then returned to the client. If the
 handler function returns a false value, the client will be disconnected.
 Alternately, the handler function may return any defined, false value (e.g., 0)
 to retain the client connection but handle the response itself.
 
-  Listen 777, sub {
-    my ($line, $conn, $server) = @_;
-    $conn->(do_something_with_line($line));
-    return 0;
+  Service {
+      my ($line, $conn, $server) = @_;
+      $conn->(do_something_with_line($line));
+      return 0;
   };
 
 =head2 Connect

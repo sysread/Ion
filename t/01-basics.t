@@ -5,8 +5,10 @@ use Ion;
 
 sub upper { uc $_[0] }
 
-ok my $server = Listen(\&upper), 'Listen';
-ok my $conn   = Connect($server->host, $server->port), 'Connect';
+ok my $server = Listen, 'Listen';
+ok Service(\&upper, $server), 'Service';
+
+ok my $conn = Connect($server->host, $server->port), 'Connect';
 
 my $timeout = async {
   Coro::AnyEvent::sleep 10;
@@ -22,6 +24,8 @@ is <$conn>, 'HOW NOW BROWN BUREAUCRAT', '<conn>';
 ok $conn->close, 'conn: close';
 
 ok $server->stop, 'server: stop';
+ok $server->join, 'server: join';
+
 $timeout->safe_cancel;
 
 done_testing;
