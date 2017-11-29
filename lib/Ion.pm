@@ -24,8 +24,7 @@ sub Connect (;$$) {
 
 sub Listen (;$$) {
   my ($port, $host) = @_;
-  my $server = Ion::Server->new(host => $host, port => $port);
-  return $server;
+  Ion::Server->new(host => $host, port => $port);
 }
 
 sub Service (&;$$) {
