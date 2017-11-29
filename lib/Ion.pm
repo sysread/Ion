@@ -22,8 +22,13 @@ sub Connect ($$) {
 
 sub Listen {
   my $service = pop;
-  my $server  = Ion::Server->new(port => shift, host => shift);
-  $server->start;
+
+  if (!ref $service || ref $service ne 'CODE') {
+    push @_, $service;
+  }
+
+  my $server = Ion::Server->new;
+  $server->start(shift, shift);
 
   if ($service) {
     async_pool {
