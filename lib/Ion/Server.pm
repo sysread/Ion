@@ -30,36 +30,32 @@ sub DEMOLISH {
 
 sub accept {
   my $self = shift;
-  $self->queue->get;
+  my $args = $self->queue->get;
+  my ($fh, $host, $port) = @$args;
+  return unless $fh;
+  Ion::Conn->new(host => $host, port => $port, handle => unblock($fh));
 }
 
 sub start {
   my ($self, $port, $host) = @_;
   $self->stop if $self->handle;
-  $self->queue(Coro::Channel->new) unless $self->queue;
+  my $queue = $self->queue || Coro::Channel->new;
 
-  my $guard = tcp_server $host, $port,
-    sub {
-      my ($fh, $host, $port) = @_;
-      return unless $fh;
+  my $guard = tcp_server(
+    $host || $self->host,
+    $port || $self->port,
+    sub{ $queue->put([@_]) },
+    rouse_cb
+  );
 
-      my $conn = Ion::Conn->new(
-        host   => $host,
-        port   => $port,
-        handle => unblock($fh),
-      );
-
-      $self->queue->put($conn);
-    },
-    rouse_cb;
-
-  weaken $self;
+  weaken $queue;
 
   my @sock = rouse_wait;
   $self->handle(unblock(shift @sock));
   $self->host(shift @sock);
   $self->port(shift @sock);
   $self->guard($guard);
+  $self->queue($queue);
 
   return 1;
 }
