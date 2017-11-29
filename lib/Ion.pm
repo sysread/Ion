@@ -15,7 +15,7 @@ our @EXPORT = qw(
   Listen
 );
 
-sub Connect ($$) {
+sub Connect (;$$) {
   my ($host, $port) = @_;
   Ion::Conn->new(host => $host, port => $port);
 }

@@ -2,6 +2,7 @@
 -bugfix: Listen fails to process port, host parameters correctly when no
  service handler is specified
 -bugfix: port and host parameters ignored due to change in method call syntax
+-bugfix: Connect prototype should specify parameters as optional
 
 0.02 2017-11-28
 -bugfix: croak on connection failure
