@@ -5,10 +5,8 @@ use Ion;
 
 sub upper { uc $_[0] }
 
-ok my $server = Listen, 'Listen';
-ok Service(\&upper, $server), 'Service';
-
-ok my $conn = Connect($server->host, $server->port), 'Connect';
+ok my $server = Service { upper($_[0]) }, 'Server';
+ok my $conn   = Connect($server->host, $server->port), 'Connect';
 
 my $timeout = async {
   Coro::AnyEvent::sleep 10;
