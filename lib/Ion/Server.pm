@@ -11,9 +11,11 @@ use Scalar::Util qw(weaken);
 use Ion::Conn;
 
 use overload (
-  '<>' => 'accept',
-  '<<' => 'decodes',
-  '>>' => 'encodes',
+  '<>'  => 'accept',
+  '>>'  => 'encodes',
+  '>>=' => 'encodes',
+  '<<'  => 'decodes',
+  '<<=' => 'decodes',
   fallback => 1,
 );
 
@@ -161,11 +163,11 @@ Decoder subs are applied in the order in which they are added.
 
 Calls L</accept>.
 
-=head2 >>
+=head2 >>, >>=
 
 Calls L<encodes>.
 
-=head2 <<
+=head2 <<, <<=
 
 Calls L<decodes>.
 

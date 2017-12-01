@@ -12,8 +12,10 @@ use List::Util qw(reduce);
 use overload (
   '<>'  => 'readline',
   '&{}' => 'writer',
-  '<<'  => 'decodes',
   '>>'  => 'encodes',
+  '>>=' => 'encodes',
+  '<<'  => 'decodes',
+  '<<=' => 'decodes',
   fallback => 1,
 );
 
@@ -132,11 +134,11 @@ Calls L</readline>.
 
 Calls L</print>.
 
-=head2 >>
+=head2 >>, <<=
 
 Calls L<encodes>.
 
-=head2 <<
+=head2 <<, <<=
 
 Calls L<decodes>.
 
