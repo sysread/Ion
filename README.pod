@@ -137,9 +137,11 @@ to a server instance, client connections accepted on the server side inherit
 the server's configuration (note: the connecting client code will need to be
 similarly configured).
 
-Multiple routines may be chained together. When more than one routine is
-specified, they will each be called in turn on the result of the previous
-routine, with the first routine receiving the raw line data.
+Multiple routines may be chained together as a single expression or multiple
+statements with the assignment version of each operator (>>= and <<=). When
+more than one routine is specified, they will each be called in turn on the
+result of the previous routine, with the first routine receiving the raw line
+data.
 
 =head2 EXAMPLE: JSON
 
@@ -164,13 +166,13 @@ routine, with the first routine receiving the raw line data.
 
   my $client = Connect somehost => 4242;
 
-  $client
-    << sub{ decode_base64(shift) }                      # decode line format
+  # Compound expression
+  $client << sub{ decode_base64(shift) }                # decode line format
     << sub{ my $msg = eval shift; $@ && die $@; $msg }; # eval perl string
 
-  $client
-    >> sub{ Dumper(shift) }                             # serialize with Dumper
-    >> sub{ encode_base64(shift, '') };                 # single line of base64
+  # Individual statements
+  $client >>= sub{ Dumper(shift) };                     # serialize with Dumper
+  $client >>= sub{ encode_base64(shift, '') };          # single line of base64
 
 =head1 AUTHOR
 

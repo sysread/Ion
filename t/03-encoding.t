@@ -21,9 +21,11 @@ my $server = Service{ $request = $_[0] }
   >> sub{ freeze(shift) } >> sub{ encode_base64(shift, '') }
   << sub{ decode_base64(shift) } << sub{ thaw(shift) };
 
-my $client = Connect($server->host, $server->port)
-  >> sub{ freeze(shift) } >> sub{ encode_base64(shift, '') }
-  << sub{ decode_base64(shift) } << sub{ thaw(shift) };
+my $client = Connect($server->host, $server->port);
+$client >>= sub{ freeze(shift) };
+$client >>= sub{ encode_base64(shift, '') };
+$client <<= sub{ decode_base64(shift) };
+$client <<= sub{ thaw(shift) };
 
 my $timeout = async {
   Coro::AnyEvent::sleep 10;
