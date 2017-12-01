@@ -221,4 +221,13 @@ data.
   $client >>= sub{ Dumper(shift) };                     # serialize with Dumper
   $client >>= sub{ encode_base64(shift, '') };          # single line of base64
 
+=head1 ENDLINES
+
+As one would expect using the <> operator, the value of C<$/> controls the character
+or string used to match the end of a line of input from the socket. It is also appended
+to all output.
+
+  local $/ = "\n\n";
+  my $http_request = <$conn>;
+
 =cut

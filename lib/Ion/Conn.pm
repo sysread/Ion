@@ -58,7 +58,7 @@ sub print {
 
 sub readline {
   my $self = shift;
-  my $line = $self->{handle}->readline or return;
+  my $line = $self->{handle}->readline($/) or return;
   chomp $line;
   reduce{ $b->($a) } $line, @{$self->{decoders}};
 }
