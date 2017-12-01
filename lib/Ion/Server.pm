@@ -3,7 +3,6 @@ package Ion::Server;
 
 use common::sense;
 
-use Moo;
 use Carp;
 use Coro;
 use AnyEvent::Socket qw(tcp_server);
@@ -12,78 +11,107 @@ use Scalar::Util qw(weaken);
 use Ion::Conn;
 
 use overload (
-  '<>'     => 'accept',
+  '<>' => 'accept',
+  '<<' => 'decodes',
+  '>>' => 'encodes',
   fallback => 1,
 );
 
-with 'Ion::Role::Socket';
+sub new {
+  my ($class, %param) = @_;
+  my $self = bless {
+    host     => $param{host},
+    port     => $param{port},
+    guard    => undef,
+    handle   => undef,
+    cond     => undef,
+    queue    => Coro::Channel->new,
+    conn     => {},
+    encoders => [],
+    decoders => [],
+  }, $class;
+}
 
-has guard  => (is => 'rw', clearer => 1);
-has handle => (is => 'rw', clearer => 1);
-has queue  => (is => 'rw', clearer => 1, default => sub{ Coro::Channel->new });
-has conn   => (is => 'rw', default => sub{ {} });
-has cond   => (is => 'rw');
-
-sub DEMOLISH {
+sub DESTROY {
   my $self = shift;
   $self->stop;
 }
 
+sub host { $_[0]->{host} }
+sub port { $_[0]->{port} }
+
 sub accept {
   my $self = shift;
-  my $args = $self->queue->get;
+  my $args = $self->{queue}->get;
   my ($fh, $host, $port) = @$args;
   return unless $fh;
-  Ion::Conn->new(host => $host, port => $port, handle => unblock($fh));
+
+  Ion::Conn->new(
+    host     => $host,
+    port     => $port,
+    handle   => unblock($fh),
+    encoders => $self->{encoders},
+    decoders => $self->{decoders},
+  );
 }
 
 sub start {
   my ($self, $port, $host) = @_;
-  $self->stop if $self->handle;
-  my $queue = $self->queue || Coro::Channel->new;
+  $self->stop if $self->{handle};
+  $self->{queue} ||= Coro::Channel->new;
 
   my $guard = tcp_server(
-    $host || $self->host,
-    $port || $self->port,
-    sub{ $queue->put([@_]) },
+    $host || $self->{host},
+    $port || $self->{port},
+    sub{ $self->{queue}->put([@_]) },
     rouse_cb
   );
 
-  weaken $queue;
+  weaken $self;
 
   my @sock = rouse_wait;
-  $self->handle(unblock(shift @sock));
-  $self->host(shift @sock);
-  $self->port(shift @sock);
-  $self->guard($guard);
-  $self->queue($queue);
-  $self->cond(rouse_cb);
+  $self->{handle} = unblock(shift @sock);
+  $self->{host}   = shift @sock;
+  $self->{port}   = shift @sock;
+  $self->{guard}  = $guard;
+  $self->{cond}   = rouse_cb;
 
   return 1;
 }
 
 sub stop {
   my $self = shift;
-  return unless $self->guard;
+  return unless $self->{guard};
 
-  $self->queue->shutdown;
-  $self->clear_queue;
+  $self->{queue}->shutdown;
+  $self->{handle}->shutdown;
+  $self->{handle}->close;
 
-  $self->clear_guard;
+  $self->{cond}->();
 
-  $self->handle->shutdown;
-  $self->handle->close;
-  $self->clear_handle;
-
-  $self->cond->();
+  undef $self->{queue};
+  undef $self->{guard};
+  undef $self->{handle};
 
   return 1;
 }
 
 sub join {
   my $self = shift;
-  rouse_wait($self->cond);
+  rouse_wait($self->{cond});
   return 1;
+}
+
+sub encodes {
+  my ($self, $encoder) = @_;
+  push @{$self->{encoders}}, $encoder;
+  return $self;
+}
+
+sub decodes {
+  my ($self, $decoder) = @_;
+  push @{$self->{decoders}}, $decoder;
+  return $self;
 }
 
 1;
@@ -117,10 +145,28 @@ Returns the host interface of a L<started|/start> service.
 Returns the next incoming connection. This method will block until a new
 connection is received.
 
+=head2 encodes
+
+Adds a subroutine to process outgoing messages to clients of this server.
+Encoder subs are applied in the order in which they are added.
+
+=head2 decodes
+
+Adds a subroutine to decode incoming messages from clients of this server.
+Decoder subs are applied in the order in which they are added.
+
 =head1 OVERLOADED OPERATORS
 
 =head2 <>
 
 Calls L</accept>.
+
+=head2 >>
+
+Calls L<encodes>.
+
+=head2 <<
+
+Calls L<decodes>.
 
 =cut

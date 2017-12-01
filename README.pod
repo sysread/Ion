@@ -8,7 +8,7 @@ Ion - A clear and concise API for writing TCP servers and clients
 
 =head1 VERSION
 
-version 0.04
+version 0.05
 
 =head1 SYNOPSIS
 
@@ -122,6 +122,38 @@ C<join> with it later.
 
   my $pending  = async { <$conn> };
   my $response = $pending->join;
+
+=head1 MESSAGE FORMATS
+
+Routines to encode and decode the line data between clients and servers may be
+specified using the overloaded << and >> operators for incoming and outgoing
+data, respectively. The syntax is identical for both servers and client
+connections. When applied to a server, all connections with the server inherit
+the same configuration.
+
+Multiple routines may be chained together. When more than one routine is
+specified, they will each be called in turn on the result of the previous
+routine, with the first routine receiving the raw line data.
+
+=head2 EXAMPLE: JSON
+
+  use JSON::XS;
+
+  $server << sub{ decode_json(shift) };
+  $server >> sub{ encode_json(shift) };
+
+=head2 EXAMPLE: CHAINING
+
+  use Data::Dumper;
+  use MIME::Base64 qw(encode_base64 decode_base64);
+
+  $server
+    << sub{ decode_base64(shift) }                      # decode line format
+    << sub{ my $msg = eval shift; $@ && die $@; $msg }; # eval perl string
+
+  $server
+    >> sub{ Dumper(shift) }                             # serialize with Dumper
+    >> sub{ encode_base64(shift, '') };                 # single line of base64
 
 =head1 AUTHOR
 

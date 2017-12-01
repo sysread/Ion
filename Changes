@@ -1,4 +1,7 @@
 {{$NEXT}}
+-new feature: << and >> overloaded to add routines to process incoming and
+ outgoing messages
+-switched to vanilla perl classes rather than Moo to reduce dependencies
 
 0.04 2017-11-29
 -new method Ion::Server->join

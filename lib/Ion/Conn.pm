@@ -3,69 +3,93 @@ package Ion::Conn;
 
 use common::sense;
 
-use Moo;
 use Carp;
 use Coro;
 use AnyEvent::Socket qw(tcp_connect);
 use Coro::Handle qw(unblock);
+use List::Util qw(reduce);
 
 use overload (
-  '<>'     => 'readline',
-  '&{}'    => '_coderef',
+  '<>'  => 'readline',
+  '&{}' => 'writer',
+  '<<'  => 'decodes',
+  '>>'  => 'encodes',
   fallback => 1,
 );
 
-with 'Ion::Role::Socket';
+sub new {
+  my ($class, %param) = @_;
 
-has guard  => (is => 'rw', clearer => 1);
-has handle => (is => 'rw', clearer => 1);
-
-sub BUILD {
-  my $self = shift;
-
-  unless ($self->handle) {
-    my $host  = $self->host || croak 'host is required when handle is not specified';
-    my $port  = $self->port || croak 'port is required when handle is not specified';
+  unless ($param{handle}) {
+    my $host  = $param{host} || croak 'host is required when handle is not specified';
+    my $port  = $param{port} || croak 'port is required when handle is not specified';
     my $guard = tcp_connect($host, $port, rouse_cb);
     my ($fh, @param) = rouse_wait;
     croak "connection failed: $!" unless $fh;
-    $self->handle(unblock $fh);
-    $self->guard($guard);
+    $param{handle} = unblock $fh;
+    $param{guard}  = $guard;
   }
+
+  my $self = bless {
+    port     => $param{port},
+    host     => $param{host},
+    guard    => $param{guard},
+    handle   => $param{handle},
+    encoders => $param{encoders} || [],
+    decoders => $param{decoders} || [],
+  }, $class;
 }
 
-sub DEMOLISH {
+sub DESTROY {
   my $self = shift;
   $self->close;
 }
 
+sub host { $_[0]->{host} }
+sub port { $_[0]->{port} }
+
 sub print {
   my ($self, $msg) = @_;
-  $self->handle->print($msg . $/);
+  $msg = reduce{ $b->($a) } $msg, @{$self->{encoders}};
+  $self->{handle}->print($msg, $/);
 }
 
 sub readline {
   my $self = shift;
-  my $line = $self->handle->readline or return;
+  my $line = $self->{handle}->readline or return;
   chomp $line;
-  return $line;
+  reduce{ $b->($a) } $line, @{$self->{decoders}};
 }
 
 sub close {
   my $self = shift;
-  return unless $self->guard;
-  $self->clear_guard;
+  return unless $self->{guard};
+  undef $self->{guard};
 
-  if ($self->handle) {
-    $self->handle->shutdown;
-    $self->handle->close;
-    $self->clear_handle;
+  if ($self->{handle}) {
+    $self->{handle}->shutdown;
+    $self->{handle}->close;
+    undef $self->{handle};
   }
+
+  return 1;
 }
 
-sub _coderef {
+sub writer {
   my $self = shift;
   sub { $self->print(shift) };
+}
+
+sub encodes {
+  my ($self, $encoder) = @_;
+  push @{$self->{encoders}}, $encoder;
+  return $self;
+}
+
+sub decodes {
+  my ($self, $decoder) = @_;
+  push @{$self->{decoders}}, $decoder;
+  return $self;
 }
 
 1;
@@ -88,6 +112,16 @@ already been chomped to remove the line terminator (C<$/>).
 Closes the socket. After calling this method, the connection object may not be
 reopened.
 
+=head2 encodes
+
+Adds a subroutine to process outgoing messages to this client. Encoder subs are
+applied in the order in which they are added.
+
+=head2 decodes
+
+Adds a subroutine to decode incoming messages from this client. Decoder subs
+are applied in the order in which they are added.
+
 =head1 OVERLOADED OPERATORS
 
 =head2 <>
@@ -97,5 +131,13 @@ Calls L</readline>.
 =head2 ${} (e.g. C<$conn->($data)>)
 
 Calls L</print>.
+
+=head2 >>
+
+Calls L<encodes>.
+
+=head2 <<
+
+Calls L<decodes>.
 
 =cut
