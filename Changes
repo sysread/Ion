@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.05 2017-12-01
 -new feature: << and >> overloaded to add routines to process incoming and
  outgoing messages (along with assignment operator counterparts)
 -switched to vanilla perl classes rather than Moo to reduce dependencies
