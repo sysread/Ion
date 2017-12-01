@@ -172,11 +172,17 @@ C<join> with it later.
 
 =head1 MESSAGE FORMATS
 
-Routines to encode and decode the line data between clients and servers may be
-specified using the overloaded << and >> operators for incoming and outgoing
-data, respectively. The syntax is identical for both servers and client
-connections. When applied to a server, all connections with the server inherit
-the same configuration.
+Sending a raw line of text is sometimes desireable, but complex applications
+will want to use an established protocol when transmitting complex data. Rather
+than fill request handling logic with the details of encoding and decoding data
+for transmission, the routines used for translating structured data into line
+data and vice versa may be specified using the >> and << operators,
+respectively.
+
+The syntax is identical for both servers and client connections. When applied
+to a server instance, client connections accepted on the server side inherit
+the server's configuration (note: the connecting client code will need to be
+similarly configured).
 
 Multiple routines may be chained together. When more than one routine is
 specified, they will each be called in turn on the result of the previous
@@ -184,21 +190,32 @@ routine, with the first routine receiving the raw line data.
 
 =head2 EXAMPLE: JSON
 
+  use Ion;
   use JSON::XS;
 
+  my $server = Listen;
   $server << sub{ decode_json(shift) };
   $server >> sub{ encode_json(shift) };
 
+  while (my $conn = <$server>) {
+    while (my $data = <$conn>) {              # $data is perl data
+      $conn->({foo => 'bar', baz => 'bat'});  # $conn is sent json: "{'foo': 'bar', 'baz': 'bat'}"
+    }
+  }
+
 =head2 EXAMPLE: CHAINING
 
+  use Ion;
   use Data::Dumper;
   use MIME::Base64 qw(encode_base64 decode_base64);
 
-  $server
+  my $client = Connect somehost => 4242;
+
+  $client
     << sub{ decode_base64(shift) }                      # decode line format
     << sub{ my $msg = eval shift; $@ && die $@; $msg }; # eval perl string
 
-  $server
+  $client
     >> sub{ Dumper(shift) }                             # serialize with Dumper
     >> sub{ encode_base64(shift, '') };                 # single line of base64
 
