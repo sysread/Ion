@@ -65,15 +65,10 @@ sub readline {
 
 sub close {
   my $self = shift;
-  return unless $self->{guard};
+  $self->{handle}->shutdown if $self->{handle}
+  $self->{handle}->close    if $self->{handle}
+  undef $self->{handle};
   undef $self->{guard};
-
-  if ($self->{handle}) {
-    $self->{handle}->shutdown;
-    $self->{handle}->close;
-    undef $self->{handle};
-  }
-
   return 1;
 }
 

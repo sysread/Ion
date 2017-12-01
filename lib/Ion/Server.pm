@@ -83,18 +83,13 @@ sub start {
 
 sub stop {
   my $self = shift;
-  return unless $self->{guard};
-
-  $self->{queue}->shutdown;
-  $self->{handle}->shutdown;
-  $self->{handle}->close;
-
-  $self->{cond}->();
-
+  $self->{queue}->shutdown  if $self->{queue};
+  $self->{handle}->shutdown if $self->{handle};
+  $self->{handle}->close    if $self->{handle};
+  $self->{cond}->()         if $self->{cond};
   undef $self->{queue};
-  undef $self->{guard};
   undef $self->{handle};
-
+  undef $self->{guard};
   return 1;
 }
 
