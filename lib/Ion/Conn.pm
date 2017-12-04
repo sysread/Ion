@@ -23,13 +23,18 @@ sub new {
   my ($class, %param) = @_;
 
   unless ($param{handle}) {
-    my $host  = $param{host} || croak 'host is required when handle is not specified';
-    my $port  = $param{port} || croak 'port is required when handle is not specified';
+    my $host = $param{host} || croak 'host is required when handle is not specified';
+    my $port = $param{port} || croak 'port is required when handle is not specified';
+    my $fh;
+
     my $guard = tcp_connect($host, $port, rouse_cb);
-    my ($fh, @param) = rouse_wait;
+    ($fh, $host, $port) = rouse_wait;
+
     croak "connection failed: $!" unless $fh;
     $param{handle} = unblock $fh;
     $param{guard}  = $guard;
+    $param{host}   = $host;
+    $param{port}   = $port;
   }
 
   my $self = bless {
@@ -92,6 +97,14 @@ sub decodes {
 1;
 
 =head1 METHODS
+
+=head2 host
+
+Returns the peer host IP.
+
+=head2 port
+
+Returns the peer port.
 
 =head2 print
 

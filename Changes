@@ -1,4 +1,6 @@
 {{$NEXT}}
+-bugfix: correctly update peer host/port on newly a connected Ion::Conn
+-docs: fixed missing documentation for Ion::Conn methods host, port
 
 0.05 2017-12-01
 -new feature: << and >> overloaded to add routines to process incoming and

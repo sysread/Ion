@@ -8,7 +8,7 @@ Ion - A clear and concise API for writing TCP servers and clients
 
 =head1 VERSION
 
-version 0.05
+version 0.06
 
 =head1 SYNOPSIS
 
