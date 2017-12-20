@@ -1,4 +1,5 @@
 {{$NEXT}}
+-new module Ion::Macro using Keyword::Declare
 -bugfix: correctly update peer host/port on newly a connected Ion::Conn
 -docs: fixed missing documentation for Ion::Conn methods host, port
 
