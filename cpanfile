@@ -10,4 +10,5 @@ requires   'parent'        => '0';
 on test => sub {
   requires 'Test2::Bundle::Extended' => '0';
   requires 'Test::Pod' => '0';
+  requires 'JSON::XS'  => '0';
 };
