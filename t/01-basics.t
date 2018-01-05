@@ -7,8 +7,11 @@ use JSON::XS qw(encode_json decode_json);
 use Ion;
 
 subtest 'basics' => sub{
-  ok my $server = Service { uc $_[0] }, 'Server';
-  ok my $conn   = Connect($server->host, $server->port), 'Connect';
+  ok(my $server = Service { uc $_[0] }, 'Server')
+    or bail_out('failed to bind service');
+
+  ok(my $conn = Connect($server->host, $server->port), 'Connect')
+    or bail_out(sprintf('failed to connect to host %s:%s', $server->host || 'undef', $server->port || 'undef'));
 
   my $timeout = async {
     Coro::AnyEvent::sleep 10;

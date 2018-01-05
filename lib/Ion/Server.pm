@@ -63,8 +63,8 @@ sub start {
   $self->{queue} ||= Coro::Channel->new;
 
   my $guard = tcp_server(
-    $host || $self->{host},
-    $port || $self->{port},
+    $host || $self->{host} || 0,
+    $port || $self->{port} || 0,
     sub{ $self->{queue}->put([@_]) },
     rouse_cb
   );
