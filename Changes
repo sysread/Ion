@@ -1,5 +1,6 @@
 {{$NEXT}}
 -debug: add bail_outs to some tests failing on openbsd
+-docs: add warning about precedence of overloaded bitshift ops
 
 0.06 2017-12-22
 -bugfix: correctly update peer host/port on newly a connected Ion::Conn

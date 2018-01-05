@@ -210,8 +210,8 @@ data.
   use JSON::XS;
 
   my $server = Listen;
-  $server << sub{ decode_json(shift) };
-  $server >> sub{ encode_json(shift) };
+  $server <<= sub{ decode_json(shift) };
+  $server >>= sub{ encode_json(shift) };
 
   while (my $conn = <$server>) {
     while (my $data = <$conn>) {              # $data is perl data
@@ -237,11 +237,35 @@ data.
 
 =head1 ENDLINES
 
-As one would expect using the <> operator, the value of C<$/> controls the character
-or string used to match the end of a line of input from the socket. It is also appended
-to all output.
+As one would expect using the <> operator, the value of C<$/> controls the
+character or string used to match the end of a line of input from the socket.
+It is also appended to all output.
 
   local $/ = "\n\n";
   my $http_request = <$conn>;
+
+=head1 PRECEDENCE OF BITWISE OPERATORS
+
+The bit shift operators overloaded to simplify data serialization and
+deserialization have a higher precedence than the comma operator, which can
+cause unexpected problems.
+
+For example, the following code:
+
+  my $client = Connect 'somehost', 4242
+    << sub{ decode_json(shift) }
+    >> sub{ encode_json(shift) };
+
+...is equivalent to the parenthesized statement:
+
+  my $client = Connect 'somehost', ((4242
+    << sub{ decode_json(shift) })
+    >> sub{ encode_json(shift) });
+
+...and would be more correctly written to avoid errors as:
+
+  my $client = Connect('somehost', 4242)
+    << sub{ decode_json(shift) }
+    >> sub{ encode_json(shift) };
 
 =cut
