@@ -1,5 +1,4 @@
 BEGIN {
-  # win32 child watcher support
   if ($^O =~ /mswin32/i) {
     my $ok;
     local $SIG{CHLD} = sub { $ok = 1 };
@@ -13,7 +12,6 @@ EOF
     }
   }
 
-  # Signal support
   unless (exists $SIG{USR1}) {
     print <<EOF;
 1..0 # SKIP broken perl detected
