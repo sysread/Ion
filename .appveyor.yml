@@ -13,10 +13,9 @@ install:
   - if not exist "C:\strawberry" cinst strawberryperl
   - set PATH=C:\strawberry\perl\bin;C:\strawberry\perl\site\bin;C:\strawberry\c\bin;%PATH%
   - cd C:\projects\%APPVEYOR_PROJECT_NAME%
-  - perl -v
-  - cpanm --quiet --notest --installdeps .
+  - cpanm -n Dist::Zilla
+  - dzil authordeps --missing | cpanm -n
+  - dzil listdeps --missing | cpanm -n
 
-build_script:
-  - perl Makefile.PL
-  - gmake test
-
+test_script:
+  - dzil test
