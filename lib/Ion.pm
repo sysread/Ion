@@ -19,8 +19,8 @@ our @EXPORT = qw(
 
 sub Connect (;$$) {
   my ($host, $port) = @_;
-  return Ion::Conn->new(handle => $host) if ref $host;
-  return Ion::Conn->new(host => $host, port => $port);
+  ref $host ? Ion::Conn->new(handle => $host)
+            : Ion::Conn->new(host => $host, port => $port);
 }
 
 sub Listen (;$$) {
