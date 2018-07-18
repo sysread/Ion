@@ -1,4 +1,30 @@
-use Test2::Bundle::Extended;
+BEGIN {
+  # win32 child watcher support
+  if ($^O =~ /mswin32/i) {
+    my $ok;
+    local $SIG{CHLD} = sub { $ok = 1 };
+    kill 'CHLD', 0;
+
+    unless ($ok) {
+      print <<EOF;
+1..0 # SKIP broken perl detected
+EOF
+      exit 0;
+    }
+  }
+
+  # Signal support
+  unless (exists $SIG{USR1}) {
+    print <<EOF;
+1..0 # SKIP broken perl detected
+EOF
+    exit 0;
+  }
+
+  require AnyEvent::Impl::Perl;
+}
+
+use Test2::V0;
 use Coro;
 use Coro::AnyEvent;
 use Coro::Handle qw(unblock);
