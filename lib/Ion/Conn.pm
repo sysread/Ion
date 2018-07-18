@@ -37,7 +37,7 @@ sub new {
     $param{port}   = $port;
   }
 
-  my $self = bless {
+  return bless {
     port     => $param{port},
     host     => $param{host},
     guard    => $param{guard},

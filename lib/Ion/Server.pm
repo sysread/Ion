@@ -21,7 +21,7 @@ use overload (
 
 sub new {
   my ($class, %param) = @_;
-  my $self = bless {
+  return bless {
     host     => $param{host},
     port     => $param{port},
     guard    => undef,
