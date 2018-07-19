@@ -34,7 +34,12 @@ subtest 'basics' => sub{
   ok(my $server = Service { uc $_[0] }, 'Server')
     or bail_out('failed to bind service');
 
-  ok(my $conn = Connect($server->host, $server->port), 'Connect')
+  diag 'server started and listening on ' . ($server->host || 'undef') . ':' . ($server->port || 'undef');
+
+  my $conn;
+  ok lives{ $conn = Connect($server->host, $server->port), 'Connect' }, 'Connect';
+
+  ok(lives{ $conn->connect }, 'conn->connect')
     or bail_out(sprintf('failed to connect to host %s:%s', $server->host || 'undef', $server->port || 'undef'));
 
   my $timeout = async {

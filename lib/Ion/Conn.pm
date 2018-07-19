@@ -22,34 +22,44 @@ use overload (
 sub new {
   my ($class, %param) = @_;
 
-  unless ($param{handle}) {
-    my $host = $param{host} || croak 'host is required when handle is not specified';
-    my $port = $param{port} || croak 'port is required when handle is not specified';
-    my $fh;
-
-    my $guard = tcp_connect($host, $port, rouse_cb);
-    ($fh, $host, $port) = rouse_wait;
-
-    croak "connection failed: $!" unless $fh;
-    $param{handle} = unblock $fh;
-    $param{guard}  = $guard;
-    $param{host}   = $host;
-    $param{port}   = $port;
-  }
-
   return bless {
-    port     => $param{port},
-    host     => $param{host},
-    guard    => $param{guard},
-    handle   => $param{handle},
-    encoders => $param{encoders} || [],
-    decoders => $param{decoders} || [],
+    port      => $param{port},
+    host      => $param{host},
+    guard     => $param{guard},
+    handle    => $param{handle},
+    encoders  => $param{encoders} || [],
+    decoders  => $param{decoders} || [],
+    connected => $param{handle} ? 1 : 0,
   }, $class;
 }
 
 sub DESTROY {
   my $self = shift;
   $self->close;
+}
+
+sub connect {
+  my $self = shift;
+
+  unless ($self->{connected}) {
+    my $host = $self->{host} || croak 'host is required when handle is not specified';
+    my $port = $self->{port} || croak 'port is required when handle is not specified';
+    my $fh;
+
+    my $guard = tcp_connect($host, $port, rouse_cb);
+    ($fh, $host, $port) = rouse_wait;
+
+    croak "connection failed: $!" unless $fh;
+    $self->{handle}    = unblock $fh;
+    $self->{guard}     = $guard;
+    $self->{host}      = $host;
+    $self->{port}      = $port;
+    $self->{connected} = 1;
+
+    return 1;
+  }
+
+  return;
 }
 
 sub host { $_[0]->{host} }
@@ -63,6 +73,7 @@ sub print {
 
 sub readline {
   my $self = shift;
+  $self->connect;
   my $line = $self->{handle}->readline($/) or return;
   chomp $line;
   reduce{ $b->($a) } $line, @{$self->{decoders}};
@@ -74,12 +85,16 @@ sub close {
   $self->{handle}->close    if $self->{handle};
   undef $self->{handle};
   undef $self->{guard};
+  $self->{connected} = 0;
   return 1;
 }
 
 sub writer {
   my $self = shift;
-  sub { $self->print(shift) };
+  sub {
+    $self->connect;
+    $self->print(shift);
+  };
 }
 
 sub encodes {
@@ -105,6 +120,10 @@ Returns the peer host IP.
 =head2 port
 
 Returns the peer port.
+
+=head2 connect
+
+Connects to the remote host unless already connected.
 
 =head2 print
 
