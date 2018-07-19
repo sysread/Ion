@@ -37,7 +37,7 @@ subtest 'basics' => sub{
   diag 'server started and listening on ' . ($server->host || 'undef') . ':' . ($server->port || 'undef');
 
   my $conn;
-  ok lives{ $conn = Connect($server->host, $server->port), 'Connect' }, 'Connect';
+  ok lives{ $conn = Connect('localhost', $server->port), 'Connect' }, 'Connect';
 
   ok(lives{ $conn->connect }, 'conn->connect')
     or bail_out(sprintf('failed to connect to host %s:%s', $server->host || 'undef', $server->port || 'undef'));

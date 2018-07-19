@@ -30,7 +30,7 @@ use Ion;
 ok my $server = Listen, 'Listen';
 $server->start;
 
-ok my $conn = Connect($server->host, $server->port), 'Connect';
+ok my $conn = Connect('localhost', $server->port), 'Connect';
 
 my $service = async {
   while (my $client = <$server>) {
