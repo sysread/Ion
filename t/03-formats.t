@@ -1,17 +1,5 @@
-BEGIN {
-  require Test2::V0;
-
-  if ($^O =~ /mswin32/i) {
-    my $ok; local $SIG{CHLD} = sub { $ok = 1 }; kill 'CHLD', 0;
-    Test2::V0::skip_all('broken perl detected') unless $ok;
-  }
-
-  Test2::V0::skip_all('broken perl detected') unless exists $SIG{USR1};
-
-  require AnyEvent::Impl::Perl;
-}
-
 use Test2::V0;
+use Ion::Test;
 use Coro;
 use Coro::AnyEvent;
 use Storable qw(freeze thaw);

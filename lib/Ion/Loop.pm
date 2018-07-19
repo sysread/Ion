@@ -1,4 +1,5 @@
 package Ion::Loop;
+# ABSTRACT: A coro with an in and out channel
 
 use common::sense;
 use Carp;
@@ -8,7 +9,9 @@ use parent 'Exporter';
 
 our @EXPORT = qw(Loop);
 
-sub Loop (&) { Ion::Loop->new($_[0]) }
+sub Loop (&) {
+  Ion::Loop->new($_[0]);
+}
 
 sub new {
   my ($class, $fn) = @_;
