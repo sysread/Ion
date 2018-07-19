@@ -180,12 +180,12 @@ data.
   my $client = Connect somehost => 4242;
 
   # Compound expression
-  $client << sub{ decode_base64(shift) }                # decode line format
-    << sub{ my $msg = eval shift; $@ && die $@; $msg }; # eval perl string
+  $client << sub{ decode_base64(shift) }                      # decode line format
+          << sub{ my $msg = eval shift; $@ && die $@; $msg }; # eval perl string
 
   # Individual statements
-  $client >>= sub{ Dumper(shift) };                     # serialize with Dumper
-  $client >>= sub{ encode_base64(shift, '') };          # single line of base64
+  $client >>= sub{ Dumper(shift) };                           # serialize with Dumper
+  $client >>= sub{ encode_base64(shift, '') };                # single line of base64
 
 =head1 ENDLINES
 
