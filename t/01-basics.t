@@ -1,23 +1,10 @@
 BEGIN {
   if ($^O =~ /mswin32/i) {
-    my $ok;
-    local $SIG{CHLD} = sub { $ok = 1 };
-    kill 'CHLD', 0;
-
-    unless ($ok) {
-      print <<EOF;
-1..0 # SKIP broken perl detected
-EOF
-      exit 0;
-    }
+    my $ok; local $SIG{CHLD} = sub { $ok = 1 }; kill 'CHLD', 0;
+    skip_all('broken perl detected') unless $ok;
   }
 
-  unless (exists $SIG{USR1}) {
-    print <<EOF;
-1..0 # SKIP broken perl detected
-EOF
-    exit 0;
-  }
+  skip_all('broken perl detected') unless exists $SIG{USR1};
 
   require AnyEvent::Impl::Perl;
 }
