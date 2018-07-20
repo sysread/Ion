@@ -5,7 +5,6 @@ use common::sense;
 
 use Carp;
 use Coro;
-use AnyEvent;
 use Ion::Server;
 use Ion::Conn;
 
