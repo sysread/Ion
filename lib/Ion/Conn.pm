@@ -38,6 +38,13 @@ sub DESTROY {
   $self->close;
 }
 
+sub copy {
+  my $self = shift;
+  my $dup  = \%$self;
+  $dup->close;
+  return $dup;
+}
+
 sub connect {
   my $self = shift;
 

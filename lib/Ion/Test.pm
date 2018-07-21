@@ -11,7 +11,9 @@ BEGIN{
     Test2::V0::skip_all('broken perl detected') unless $ok;
   }
 
-  Test2::V0::skip_all('broken perl detected') unless exists $SIG{USR1};
+  unless (exists $SIG{USR1}) {
+    Test2::V0::skip_all('broken perl detected');
+  }
 
   require AnyEvent::Impl::Perl;
 }
