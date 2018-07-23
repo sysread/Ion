@@ -3,6 +3,7 @@
 -docs: add warning about precedence of overloaded bitshift ops
 -new feature: lazy connection
 -new feature: Ion::Conn->copy
+-behavior: Ion classes now use Class::Slot
 
 0.06 2017-12-22
 -bugfix: correctly update peer host/port on newly a connected Ion::Conn

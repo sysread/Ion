@@ -3,6 +3,7 @@ package Ion::Conn;
 
 use common::sense;
 
+use Class::Slot;
 use Carp;
 use Coro;
 use AnyEvent::Socket qw(tcp_connect);
@@ -19,19 +20,13 @@ use overload (
   fallback => 1,
 );
 
-sub new {
-  my ($class, %param) = @_;
-
-  return bless {
-    port      => $param{port},
-    host      => $param{host},
-    guard     => $param{guard},
-    handle    => $param{handle},
-    encoders  => $param{encoders} || [],
-    decoders  => $param{decoders} || [],
-    connected => $param{handle} ? 1 : 0,
-  }, $class;
-}
+slot 'port';
+slot 'host';
+slot 'guard';
+slot 'handle';
+slot 'encoders',  def => sub{ [] };
+slot 'decoders',  def => sub{ [] };
+slot 'connected', def => 0;
 
 sub DESTROY {
   my $self = shift;
@@ -48,9 +43,12 @@ sub copy {
 sub connect {
   my $self = shift;
 
-  unless ($self->{connected}) {
-    my $host = $self->{host} || croak 'host is required when handle is not specified';
-    my $port = $self->{port} || croak 'port is required when handle is not specified';
+  $self->{connected} = 1
+    if $self->handle;
+
+  unless ($self->connected) {
+    my $host = $self->host || croak 'host is required when handle is not specified';
+    my $port = $self->port || croak 'port is required when handle is not specified';
     my $fh;
 
     my $guard = tcp_connect($host, $port, rouse_cb);
@@ -69,27 +67,25 @@ sub connect {
   return;
 }
 
-sub host { $_[0]->{host} }
-sub port { $_[0]->{port} }
-
 sub print {
   my ($self, $msg) = @_;
-  $msg = reduce{ $b->($a) } $msg, @{$self->{encoders}};
-  $self->{handle}->print($msg, $/);
+  $self->connect;
+  $msg = reduce{ $b->($a) } $msg, @{$self->encoders};
+  $self->handle->print($msg, $/);
 }
 
 sub readline {
   my $self = shift;
   $self->connect;
-  my $line = $self->{handle}->readline($/) or return;
+  my $line = $self->handle->readline($/) or return;
   chomp $line;
-  reduce{ $b->($a) } $line, @{$self->{decoders}};
+  reduce{ $b->($a) } $line, @{$self->decoders};
 }
 
 sub close {
   my $self = shift;
-  $self->{handle}->shutdown if $self->{handle};
-  $self->{handle}->close    if $self->{handle};
+  $self->handle->shutdown if $self->handle;
+  $self->handle->close    if $self->handle;
   undef $self->{handle};
   undef $self->{guard};
   $self->{connected} = 0;
@@ -106,13 +102,13 @@ sub writer {
 
 sub encodes {
   my ($self, $encoder) = @_;
-  push @{$self->{encoders}}, $encoder;
+  push @{$self->encoders}, $encoder;
   return $self;
 }
 
 sub decodes {
   my ($self, $decoder) = @_;
-  push @{$self->{decoders}}, $decoder;
+  push @{$self->decoders}, $decoder;
   return $self;
 }
 
