@@ -26,7 +26,6 @@ slot 'guard';
 slot 'handle';
 slot 'cond';
 slot 'queue';
-slot 'conn',     def => sub{ {} };
 slot 'encoders', def => sub{ [] };
 slot 'decoders', def => sub{ [] };
 
