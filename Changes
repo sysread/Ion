@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.08 2018-07-24
 -debug: add bail_outs to some tests failing on openbsd
 -docs: add warning about precedence of overloaded bitshift ops
 -new feature: lazy connection
