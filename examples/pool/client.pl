@@ -1,7 +1,6 @@
 #!perl
 
 use common::sense;
-use Test2::V0;
 use Coro;
 use Data::Dump::Streamer;
 use MIME::Base64 qw(encode_base64 decode_base64);
@@ -26,6 +25,7 @@ $client
 
 my @pending = map{
   async{
+      use Test2::V0;
       my ($client, $i) = @_;
       $client->([\&work, $i]);
       my $result = <$client>;

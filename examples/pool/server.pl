@@ -24,10 +24,17 @@ $server->start;
 async_pool {
   while (my $conn = <$server>) {
     async_pool {
+      my $conn = shift;
+
       while (my $msg = <$conn>) {
-        $conn->($pool->process(@$msg));
+        async_pool{
+          my ($conn, $msg) = @_;
+          $conn->($pool->process(@$msg))
+
+        } $conn, $msg;
       }
-    };
+
+    } $conn;
   }
 };
 
